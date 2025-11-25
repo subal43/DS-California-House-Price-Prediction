@@ -11,7 +11,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import cross_val_score
-
+import json
 import lightgbm as lgb
 
 MODEL_FILE = "model.pkl"
@@ -35,9 +35,12 @@ def build_pipeline(num_attribs , cat_attribs):
         ('cat', categorical_pipeline, cat_attribs),
     ])
     return full_pipeline
-
-if not os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE):
-    data = pd.read_csv('housing.csv')
+# print(os.path.exists(MODEL_FILE ) )
+# print(os.path.exists(PIPELINE) )
+# print(not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)))
+if not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)):
+    print("Training Model and Preparing Pipeline...")
+    data = pd.read_csv('./data/housing.csv')
     print("Data Loaded")
     # Creating income category attribute for stratified sampling
     data['income_cat'] = pd.cut(data['median_income'],
@@ -67,12 +70,17 @@ if not os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE):
     # model = RandomForestRegressor(random_state=42)
     # model.fit(housing_prepared, housing_labels)
 
-    lgb_reg = lgb.LGBMRegressor(random_state=42)
-    lgb_reg.fit(housing_prepared, housing_labels)
+    with open('./optuna_result/best_hyperparameters.json', 'r') as f:
+        best_params = json.load(f)
+    print("Best Hyperparameters: ", best_params)
+    print(best_params.classifier)
+
+    # lgb_reg = lgb.LGBMRegressor(random_state=42)
+    # lgb_reg.fit(housing_prepared, housing_labels)
     
     # Saving the model and pipeline
-    joblib.dump(lgb_reg, MODEL_FILE)  
-    joblib.dump(full_pipeline, PIPELINE)
+    # joblib.dump(lgb_reg, MODEL_FILE)  
+    # joblib.dump(full_pipeline, PIPELINE)
 
     print("Model and Pipeline saved.")
 
