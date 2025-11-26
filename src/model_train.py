@@ -125,10 +125,17 @@ else :
     pipeline = joblib.load(PIPELINE)
 
     input_data = pd.read_csv('input.csv')
+    feature_names = pipeline.get_feature_names_out()
     prepared_data = pipeline.transform(input_data)
-    predictions = model.predict(prepared_data)
+    prepared_df = pd.DataFrame(prepared_data, columns=feature_names)
+
+
+
+
+
+    predictions = model.predict(prepared_df)
     input_data['Predicted_House_Value'] = predictions
-    input_data.to_csv('predictions_lgb_reg.csv', index=False)
-    print("Predictions saved to predictions.csv")
+    input_data.to_csv('predictions_lgb_reg_1.csv', index=False)
+    print("Predictions saved to Predicted_House_Value.csv")
 
 
