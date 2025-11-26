@@ -4,3 +4,4 @@ predictions_lgb_reg.csv
 predictions.csv
 .ipynb_checkpoints/
 anaconda_projects/
+*.pkl

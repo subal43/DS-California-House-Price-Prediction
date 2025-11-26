@@ -16,6 +16,31 @@ import lightgbm as lgb
 
 MODEL_FILE = "model.pkl"
 PIPELINE = "pipeline.pkl" 
+def build_classifier_from_params(params):
+    classifier_name = params["classifier"]
+    hp = {k: v for k, v in params.items() if k != "classifier"}
+
+    # ---- Mapping classifier names to actual classes ---- #
+    classifier_map = {
+        "LightGBM": lambda hp: __import__("lightgbm").LGBMClassifier(**hp),
+        "XGBoost": lambda hp: __import__("xgboost").XGBClassifier(**hp),
+        "CatBoost": lambda hp: __import__("catboost").CatBoostClassifier(**hp, verbose=0),
+        "RandomForest": lambda hp: __import__("sklearn.ensemble").ensemble.RandomForestClassifier(**hp),
+        "GradientBoosting": lambda hp: __import__("sklearn.ensemble").ensemble.GradientBoostingClassifier(**hp),
+        "SVC": lambda hp: __import__("sklearn.svm").svm.SVC(**hp),
+        "LogisticRegression": lambda hp: __import__("sklearn.linear_model").linear_model.LogisticRegression(**hp)
+    }
+
+    if classifier_name not in classifier_map:
+        raise ValueError(f"Unknown classifier: {classifier_name}")
+
+    model = classifier_map[classifier_name](hp)
+    return model
+
+
+
+
+
 
 def build_pipeline(num_attribs , cat_attribs):
     # Numerical pipeline
@@ -72,15 +97,25 @@ if not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)):
 
     with open('./optuna_result/best_hyperparameters.json', 'r') as f:
         best_params = json.load(f)
-    print("Best Hyperparameters: ", best_params)
-    print(best_params.classifier)
+
+    
+
+
+    
+# ====== Example Usage ======
+ 
+
+    model = build_classifier_from_params(best_params["best_params"])
+    model.fit(housing_prepared, housing_labels)
+  
+
 
     # lgb_reg = lgb.LGBMRegressor(random_state=42)
     # lgb_reg.fit(housing_prepared, housing_labels)
     
     # Saving the model and pipeline
-    # joblib.dump(lgb_reg, MODEL_FILE)  
-    # joblib.dump(full_pipeline, PIPELINE)
+    joblib.dump(  model , MODEL_FILE)  
+    joblib.dump(full_pipeline, PIPELINE)
 
     print("Model and Pipeline saved.")
 
