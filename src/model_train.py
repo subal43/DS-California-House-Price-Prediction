@@ -7,34 +7,29 @@ from sklearn.preprocessing import StandardScaler , OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-# importing modules for ml
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import cross_val_score
 import json
-import lightgbm as lgb
+from sklearn.linear_model import LinearRegression
+from lightgbm import LGBMRegressor 
 
 MODEL_FILE = "model.pkl"
 PIPELINE = "pipeline.pkl" 
+
 def build_classifier_from_params(params):
     classifier_name = params["classifier"]
     hp = {k: v for k, v in params.items() if k != "classifier"}
 
-    # ---- Mapping classifier names to actual classes ---- #
-    classifier_map = {
-        "LightGBM": lambda hp: __import__("lightgbm").LGBMClassifier(**hp),
-        "XGBoost": lambda hp: __import__("xgboost").XGBClassifier(**hp),
-        "CatBoost": lambda hp: __import__("catboost").CatBoostClassifier(**hp, verbose=0),
-        "RandomForest": lambda hp: __import__("sklearn.ensemble").ensemble.RandomForestClassifier(**hp),
-        "GradientBoosting": lambda hp: __import__("sklearn.ensemble").ensemble.GradientBoostingClassifier(**hp),
-        "SVC": lambda hp: __import__("sklearn.svm").svm.SVC(**hp),
-        "LogisticRegression": lambda hp: __import__("sklearn.linear_model").linear_model.LogisticRegression(**hp)
-    }
-
-    if classifier_name not in classifier_map:
+    if classifier_name == "LightGBM":
+        model = LGBMRegressor(**hp)
+    elif classifier_name == "RandomForest":
+        model = RandomForestRegressor(**hp)
+    elif classifier_name == "LinearRegression":
+        model = LinearRegression(**hp)
+    else:
         raise ValueError(f"Unknown classifier: {classifier_name}")
 
-    model = classifier_map[classifier_name](hp)
     return model
 
 
@@ -60,9 +55,7 @@ def build_pipeline(num_attribs , cat_attribs):
         ('cat', categorical_pipeline, cat_attribs),
     ])
     return full_pipeline
-# print(os.path.exists(MODEL_FILE ) )
-# print(os.path.exists(PIPELINE) )
-# print(not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)))
+
 if not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)):
     print("Training Model and Preparing Pipeline...")
     data = pd.read_csv('./data/housing.csv')
@@ -129,13 +122,9 @@ else :
     prepared_data = pipeline.transform(input_data)
     prepared_df = pd.DataFrame(prepared_data, columns=feature_names)
 
-
-
-
-
     predictions = model.predict(prepared_df)
     input_data['Predicted_House_Value'] = predictions
-    input_data.to_csv('predictions_lgb_reg_1.csv', index=False)
+    input_data.to_csv('predictions_lgb_reg_2.csv', index=False)
     print("Predictions saved to Predicted_House_Value.csv")
 
 
