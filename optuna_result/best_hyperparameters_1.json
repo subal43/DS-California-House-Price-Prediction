@@ -1,0 +1,8 @@
+{
+    "best_params": {
+        "classifier": "LightGBM",
+        "num_leaves": 99,
+        "learning_rate": 0.09754164103847399
+    },
+    "best_value": 2186019036.285588
+}

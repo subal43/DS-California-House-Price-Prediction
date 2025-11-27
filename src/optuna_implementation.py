@@ -14,7 +14,7 @@ import json
 import lightgbm as lgb
 
 #Loading the dataset
-data1 = pd.read_csv('housing.csv')
+data1 = pd.read_csv('./data/housing.csv')
 data = data1.copy()
 
 # Creating income category attribute for stratified sampling
@@ -138,8 +138,10 @@ def objective(trial) :
     elif classfier_name == 'LinearRegression' :
         model = LinearRegression() 
 
-
-    scores = -cross_val_score(model, housing_prepared, housing_labels,
+   
+    feature_names = full_pipeline.get_feature_names_out()
+    input_data = pd.DataFrame(housing_prepared, columns=feature_names)
+    scores = -cross_val_score(model, input_data, housing_labels,
                                         scoring='neg_mean_squared_error', cv=5).mean()
     return scores
 
@@ -155,9 +157,9 @@ best_results = {
     "best_value": best_trial.value
 }
 
-with open("best_hyperparameters.json" , "w") as f :
+with open("./optuna_result/best_hyperparameters_1.json" , "w") as f :
     json.dump(best_results , f , indent=4)
-study.trials_dataframe().to_csv("optuna_study_results.csv", index=False)
+study.trials_dataframe().to_csv("./optuna_result/optuna_study_results_1.csv", index=False)
 
 # print(study['params_classifier'].value_counts())
 # 
