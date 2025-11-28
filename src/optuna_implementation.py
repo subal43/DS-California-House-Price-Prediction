@@ -30,17 +30,10 @@ for train_index, test_index in split.split(data, data['income_cat']):
 # Separating features and labels
 housing = strat_train_set.drop('median_house_value', axis=1)
 housing_labels = strat_train_set['median_house_value'].copy()
-# print("housing valued : ",housing.head())
-# print("housing labels : ",housing_labels)
 
-#  
 #list of numerical and categorical attributes
 numerical_attrs = housing.select_dtypes(include=[np.number]).columns.tolist()
 categorical_attrs = housing.select_dtypes(include=[object]).columns.tolist()
-
-
-# print("Numerical Attributes: ", numerical_attrs)
-# print("Categorical Attributes: ", categorical_attrs)
 
 # Numerical pipeline
 numerical_pipeline = Pipeline([
@@ -62,56 +55,6 @@ full_pipeline = ColumnTransformer([
 # Preparing the data
 housing_prepared = full_pipeline.fit_transform(housing)
 
-
-
-
-#liner Regression model
-# lin_reg = LinearRegression()
-# lin_reg.fit(housing_prepared, housing_labels)
-# lin_preds = lin_reg.predict(housing_prepared)
-#lin_rmse = root_mean_squared_error(housing_labels,lin_preds)
-# lin_cross_val_scores = -cross_val_score(lin_reg, housing_prepared, housing_labels,
-                                    #  scoring='neg_mean_squared_error', cv=10)
-
-# print("Linear Regression RMSE:", lin_cross_val_scores.mean())
-
-#Decision Tree Regressor model
-# tree_reg = DecisionTreeRegressor()  
-# tree_reg.fit(housing_prepared, housing_labels)
-# tree_preds  = tree_reg.predict(housing_prepared)
-# tree_rmse = root_mean_squared_error(housing_labels, tree_preds)
-# print("Decision Tree RMSE:", tree_rmse)
-# tree_cross_val_scores = -cross_val_score(tree_reg, housing_prepared, housing_labels,
-                                    #  scoring='neg_mean_squared_error', cv=10)
-# print("Decision Tree RMSE:", tree_cross_val_scores.mean())
-
-
-
-#Random Forest Regressor model
-# forest_reg = RandomForestRegressor()
-# forest_reg.fit(housing_prepared, housing_labels)
-# forest_preds = forest_reg.predict(housing_prepared)
-# forest_rmse = root_mean_squared_error(housing_labels, forest_preds)
-# print("Random Forest RMSE:", forest_rmse)
-
-# forest_cross_val_scores = -cross_val_score(forest_reg, housing_prepared, housing_labels,
-                                        # scoring='neg_mean_squared_error', cv=10)
-# print("Random Forest RMSE:", forest_cross_val_scores.mean())
-
-
-
-#XGBoost Regressor model
-# xgb_reg = xgb.XGBRegressor()
-# xgb_cross_val_scores = -cross_val_score(xgb_reg, housing_prepared, housing_labels,
-#                                         scoring='neg_mean_squared_error', cv=10)
-# print("XGBoost RMSE:", xgb_cross_val_scores.mean())
-
-
-#LightGBM Regressor model
-# lgb_reg = lgb.LGBMRegressor()
-# lgb_cross_val_scores = -cross_val_score(lgb_reg, housing_prepared, housing_labels,
-#                                         scoring='neg_mean_squared_error', cv=10)
-# print("LightGBM RMSE:", lgb_cross_val_scores.mean())
 
 def objective(trial) : 
     classfier_name = trial.suggest_categorical("classifier" , ['RandomForest' , 'LightGBM', 'DecisionTree' , 'LinearRegression'])
@@ -148,8 +91,6 @@ def objective(trial) :
 
 study = optuna.create_study(direction='minimize')
 study.optimize(objective , n_trials=100)
-# # study = pd.read_csv("optuna_study_results.csv")
-# # print(study.head())
 
 best_trial = study.best_trial
 best_results = {
@@ -160,8 +101,3 @@ best_results = {
 with open("./optuna_result/best_hyperparameters_1.json" , "w") as f :
     json.dump(best_results , f , indent=4)
 study.trials_dataframe().to_csv("./optuna_result/optuna_study_results_1.csv", index=False)
-
-# print(study['params_classifier'].value_counts())
-# 
-
-# print(study.groupby('params_classifier')['value'].mean())

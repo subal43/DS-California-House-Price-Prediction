@@ -33,10 +33,6 @@ def build_classifier_from_params(params):
     return model
 
 
-
-
-
-
 def build_pipeline(num_attribs , cat_attribs):
     # Numerical pipeline
     numerical_pipeline = Pipeline([
@@ -84,28 +80,12 @@ if not (os.path.exists(MODEL_FILE ) and os.path.exists(PIPELINE)):
     # Preparing the data
     housing_prepared = full_pipeline.fit_transform(housing)
     
-    # Training the model
-    # model = RandomForestRegressor(random_state=42)
-    # model.fit(housing_prepared, housing_labels)
 
-    with open('./optuna_result/best_hyperparameters.json', 'r') as f:
+    with open('./optuna_result/best_hyperparameters_1.json', 'r') as f:
         best_params = json.load(f)
-
-    
-
-
-    
-# ====== Example Usage ======
- 
 
     model = build_classifier_from_params(best_params["best_params"])
     model.fit(housing_prepared, housing_labels)
-  
-
-
-    # lgb_reg = lgb.LGBMRegressor(random_state=42)
-    # lgb_reg.fit(housing_prepared, housing_labels)
-    
     # Saving the model and pipeline
     joblib.dump(  model , MODEL_FILE)  
     joblib.dump(full_pipeline, PIPELINE)
@@ -124,7 +104,7 @@ else :
 
     predictions = model.predict(prepared_df)
     input_data['Predicted_House_Value'] = predictions
-    input_data.to_csv('predictions_lgb_reg_2.csv', index=False)
+    input_data.to_csv('predictions_lgb_reg.csv', index=False)
     print("Predictions saved to Predicted_House_Value.csv")
 
 
