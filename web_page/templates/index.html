@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <header>
+            <h1>California House Price Predictor</h1>
+            <p>Enter property details to estimate the value.</p>
+        </header>
+
+        <main>
+            <form id="predictionForm">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="ocean_proximity">Ocean Proximity</label>
+                        <select id="ocean_proximity" name="ocean_proximity" required>
+                            <option value="" disabled selected>Select proximity</option>
+                            <option value="1H OCEAN">&lt;1H OCEAN</option>
+                            <option value="INLAND">INLAND</option>
+                            <option value="NEAR OCEAN">NEAR OCEAN</option>
+                            <option value="NEAR BAY">NEAR BAY</option>
+                            <option value="ISLAND">ISLAND</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="median_income">Median Income (Tens of thousands)</label>
+                        <input type="number" id="median_income" name="median_income" step="0.0001" placeholder="e.g. 8.3252" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="households">Households</label>
+                        <input type="number" id="households" name="households" step="1" placeholder="e.g. 126" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="population">Population</label>
+                        <input type="number" id="population" name="population" step="1" placeholder="e.g. 322" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="total_bedrooms">Total Bedrooms</label>
+                        <input type="number" id="total_bedrooms" name="total_bedrooms" step="1" placeholder="e.g. 129" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="total_rooms">Total Rooms</label>
+                        <input type="number" id="total_rooms" name="total_rooms" step="1" placeholder="e.g. 880" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="housing_median_age">Housing Median Age</label>
+                        <input type="number" id="housing_median_age" name="housing_median_age" step="1" placeholder="e.g. 41" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="latitude">Latitude</label>
+                        <input type="number" id="latitude" name="latitude" step="0.01" placeholder="e.g. 37.88" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="longitude">Longitude</label>
+                        <input type="number" id="longitude" name="longitude" step="0.01" placeholder="e.g. -122.23" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="predictBtn">
+                        <span class="btn-text">Predict Value</span>
+                        <div class="loader" id="loader"></div>
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultContainer" class="result-container hidden">
+                <h2>Estimated Value</h2>
+                <div class="price-display">
+                    <span class="currency">$</span>
+                    <span id="predictedValue">0</span>
+                </div>
+                <p class="disclaimer">*This is an AI-generated estimate.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
