@@ -156,6 +156,41 @@ button:active {
     opacity: 0;
 }
 
+.hidden{
+    display : none !important;
+}
+
+.shap-plot-container {
+    margin-top: 2rem;
+    text-align: center;
+    animation : fadeIn 0.8s ease-out;
+}
+
+.shap-plot-container h3 {
+    color: var(--text-main);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.shap-plot-container img{
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border);
+}
+
+.shap-description {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+#shapPlot{
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px
+}
+
 .result-container h2 {
     color: var(--text-muted);
     font-size: 1rem;
