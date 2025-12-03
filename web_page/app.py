@@ -43,48 +43,54 @@ def predict():
         prepared_df = pd.DataFrame(processed_features, columns=feature_names)
 
         prediction = model.predict(prepared_df)[0]
-
-        plot_url = None
-        # explainer = shap.Explainer(model, prepared_df)
-        # shap_values = explainer(prepared_df)
-
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(prepared_df)
-
-
-        shap_vals = shap_values[0] if isinstance(shap_values, list) else shap_values
+        try:
+            plot_url = None
         
-        fig , ax = plt.subplots(figsize=(10,6))
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(prepared_df)
 
-        feature_names_list = list (prepared_df.columns)
-        feature_values = shap_vals
 
-        indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
-        sorted_feature_names = [feature_names_list[i] for i in indices]
-        sorted_feature_values = [feature_values[i] for i in indices]
+            shap_vals = shap_values[0] if isinstance(shap_values, list) else shap_values
+            
+            fig , ax = plt.subplots(figsize=(10,6))
 
-        colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
-        y_pos = range(len(sorted_feature_names))
+            feature_names_list = list (prepared_df.columns)
+            feature_values = shap_vals
 
-        ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels(sorted_feature_names)
-        ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
-        ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        ax.axvline(0, color='black', linewidth=0.8)
-        ax.grid(axis='x',alpha=0.3)
+            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
+            sorted_feature_names = [feature_names_list[i] for i in indices]
+            sorted_feature_values = [feature_values[i] for i in indices]
 
+            colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
+            y_pos = range(len(sorted_feature_names))
+
+            ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(sorted_feature_names)
+            ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
+            ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
+            plt.tight_layout()
+            ax.axvline(0, color='black', linewidth=0.8)
+            ax.grid(axis='x',alpha=0.3)
+
+            for i, v in enumerate(sorted_feature_values):
+                ax.text(v + (0.02 if v > 0 else -0.02), i, f"{v:.3f}", color='black', va='center', fontweight='bold', fontsize=9)
+            
+            img = io.BytesIO()
+            plt.savefig(img, format='png', dpi =100 , bbox_inches='tight')
+            img.seek(0)
+            plot_url = base64.b64encode(img.getvalue()).decode('utf-8')
+            plt.close(fig)
+            plot_url = f'data:image/png;base64,{plot_url}'
         
+        except Exception as e:
+            pass
         
-
+        response = {'prediction': float(prediction)}
+        if plot_url:
+            response['plot_url'] = plot_url
         
-
- 
-
-
-                
-        return jsonify({'prediction': prediction})
+        return jsonify(response)    
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
