@@ -44,6 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 predictedValueElement.textContent = formattedPrice;
                 resultContainer.classList.remove('hidden');
                 
+                if (result.plot_url){
+                    const shapPlot = document.getElementById('shapPlot');
+                    const shapPlotContainer = document.getElementById('shapPlotContainer');
+                    shapPlot.src = result.plot_url;
+                    shapPlotContainer.classList.remove('hidden');
+                }
+
                 // Scroll to result
                 resultContainer.scrollIntoView({ behavior: 'smooth' });
             }
