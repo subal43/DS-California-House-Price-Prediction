@@ -5,10 +5,15 @@ import shap
 import matplotlib.pyplot as plt
 import io
 import base64
+from flask_cors import CORS
 import matplotlib
 matplotlib.use('Agg')
 
 app = Flask(__name__)
+CORS(app)
+
+model = joblib.load('model.pkl')  
+pipeline = joblib.load('pipeline.pkl')  
 
 @app.route('/')
 def index():
@@ -20,10 +25,12 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        data = request.json
+        data = request.get_json()
         
+        if data is None:
+            return jsonify({'error': 'No input data provided'}), 400
   
-        ocean_proximity = data.get('ocean_proximity')
+        ocean_proximity = str(data.get('ocean_proximity'))
         median_income = float(data.get('median_income'))
         households = float(data.get('households'))
         population = float(data.get('population'))
@@ -34,8 +41,7 @@ def predict():
         longitude = float(data.get('longitude'))
 
         
-        model = joblib.load('model.pkl')  
-        pipeline = joblib.load('pipeline.pkl')  
+
         features = [{"ocean_proximity":str(ocean_proximity), "median_income": median_income, "households": households, "population": population, "total_bedrooms": total_bedrooms, "total_rooms": total_rooms, "housing_median_age": housing_median_age, "latitude": latitude, "longitude": longitude}]
         features_dataframe = pd.DataFrame(features)
         processed_features = pipeline.transform(features_dataframe)
