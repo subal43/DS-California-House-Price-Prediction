@@ -15,18 +15,16 @@ CORS(app)
 model = joblib.load('model.pkl')  
 pipeline = joblib.load('pipeline.pkl')  
 
-explainer = shap.TreeExplainer(model)
+# explainer = shap.TreeExplainer(model)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
-
-
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        print("Received prediction request") # Debug log
         data = request.get_json()
         
         if data is None:
@@ -42,6 +40,7 @@ def predict():
         latitude = float(data.get('latitude'))
         longitude = float(data.get('longitude'))
 
+        print("Data parsed successfully") # Debug log
         
 
         features = [{"ocean_proximity":ocean_proximity, "median_income": median_income, "households": households, "population": population, "total_bedrooms": total_bedrooms, "total_rooms": total_rooms, "housing_median_age": housing_median_age, "latitude": latitude, "longitude": longitude}]
@@ -50,51 +49,54 @@ def predict():
         feature_names = pipeline.get_feature_names_out()
         prepared_df = pd.DataFrame(processed_features, columns=feature_names)
 
+        print("Features prepared, predicting...") # Debug log
         prediction = model.predict(prepared_df)[0]
+        print(f"Prediction result: {prediction}") # Debug log
+
         try:
             plot_url = None
         
             
-            shap_values = explainer.shap_values(prepared_df)
+            # shap_values = explainer.shap_values(prepared_df)
 
 
-            if isinstance(shap_values, list):
-                shap_vals = shap_values[0]
-            else:
-                shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
+            # if isinstance(shap_values, list):
+            #     shap_vals = shap_values[0]
+            # else:
+            #     shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
 
             
-            fig , ax = plt.subplots(figsize=(10,6))
+            # fig , ax = plt.subplots(figsize=(10,6))
 
-            feature_names_list = list (prepared_df.columns)
-            feature_values = shap_vals
+            # feature_names_list = list (prepared_df.columns)
+            # feature_values = shap_vals
 
-            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
-            sorted_feature_names = [feature_names_list[i] for i in indices]
-            sorted_feature_values = [feature_values[i] for i in indices]
+            # indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
+            # sorted_feature_names = [feature_names_list[i] for i in indices]
+            # sorted_feature_values = [feature_values[i] for i in indices]
 
-            colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
-            y_pos = range(len(sorted_feature_names))
+            # colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
+            # y_pos = range(len(sorted_feature_names))
 
-            ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(sorted_feature_names)
-            ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
-            ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
-            plt.tight_layout()
-            ax.axvline(0, color='black', linewidth=0.8)
-            ax.grid(axis='x',alpha=0.3)
+            # ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
+            # ax.set_yticks(y_pos)
+            # ax.set_yticklabels(sorted_feature_names)
+            # ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
+            # ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
+            # plt.tight_layout()
+            # ax.axvline(0, color='black', linewidth=0.8)
+            # ax.grid(axis='x',alpha=0.3)
 
-            for i, v in enumerate(sorted_feature_values):
-                ax.text(v + (0.02 if v > 0 else -0.02), i, f"{v:.3f}", color='black', va='center', fontweight='bold', fontsize=9)
+            # for i, v in enumerate(sorted_feature_values):
+            #     ax.text(v + (0.02 if v > 0 else -0.02), i, f"{v:.3f}", color='black', va='center', fontweight='bold', fontsize=9)
             
-            img = io.BytesIO()
-            plt.savefig(img, format='png', dpi =100 , bbox_inches='tight')
-            img.seek(0)
-            plot_url = base64.b64encode(img.getvalue()).decode('utf-8')
-            plt.close(fig)
-            plot_url = f'data:image/png;base64,{plot_url}'
-        
+            # img = io.BytesIO()
+            # plt.savefig(img, format='png', dpi =100 , bbox_inches='tight')
+            # img.seek(0)
+            # plot_url = base64.b64encode(img.getvalue()).decode('utf-8')
+            # plt.close(fig)
+            # plot_url = f'data:image/png;base64,{plot_url}'
+            pass
         except Exception as e:
             print(f"SHAP plot generation failed: {e}")
             pass
