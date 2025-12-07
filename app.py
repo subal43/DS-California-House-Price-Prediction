@@ -15,6 +15,8 @@ CORS(app)
 model = joblib.load('model.pkl')  
 pipeline = joblib.load('pipeline.pkl')  
 
+explainer = shap.TreeExplainer(model)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -52,7 +54,7 @@ def predict():
         try:
             plot_url = None
         
-            explainer = shap.TreeExplainer(model)
+            
             shap_values = explainer.shap_values(prepared_df)
 
 
