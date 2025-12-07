@@ -1,3 +1,10 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["KMP_INIT_AT_FORK"] = "FALSE"
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
+
 from flask import Flask, render_template, request, jsonify
 import joblib
 import pandas as pd
@@ -42,7 +49,7 @@ def predict():
 
         
 
-        features = [{"ocean_proximity":str(ocean_proximity), "median_income": median_income, "households": households, "population": population, "total_bedrooms": total_bedrooms, "total_rooms": total_rooms, "housing_median_age": housing_median_age, "latitude": latitude, "longitude": longitude}]
+        features = [{"ocean_proximity":ocean_proximity, "median_income": median_income, "households": households, "population": population, "total_bedrooms": total_bedrooms, "total_rooms": total_rooms, "housing_median_age": housing_median_age, "latitude": latitude, "longitude": longitude}]
         features_dataframe = pd.DataFrame(features)
         processed_features = pipeline.transform(features_dataframe)
         feature_names = pipeline.get_feature_names_out()
@@ -56,7 +63,10 @@ def predict():
             shap_values = explainer.shap_values(prepared_df)
 
 
-            shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
+            if isinstance(shap_values, list):
+                shap_vals = shap_values[0]
+            else:
+                shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
 
             
             fig , ax = plt.subplots(figsize=(10,6))
