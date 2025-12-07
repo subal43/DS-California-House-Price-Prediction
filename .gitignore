@@ -3,4 +3,4 @@ input.csv
 predictions_lgb_reg.csv
 .ipynb_checkpoints/
 anaconda_projects/
-*.pkl
+
