@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import joblib
 import pandas as pd
-import numpy as np
 import shap
 import matplotlib.pyplot as plt
 import io
@@ -16,7 +15,26 @@ CORS(app)
 model = joblib.load('model.pkl')  
 pipeline = joblib.load('pipeline.pkl')  
 
-explainer = shap.TreeExplainer(model)
+
+
+
+import threading
+
+# Global initialization of SHAP explainer (Background Load)
+explainer = None
+
+def init_shap():
+    global explainer
+    print("Starting SHAP explainer initialization in background...", flush=True)
+    try:
+        # Load heavy object
+        explainer = shap.TreeExplainer(model)
+        print("SHAP explainer initialized successfully!", flush=True)
+    except Exception as e:
+        print(f"Failed to initialize SHAP explainer: {e}", flush=True)
+
+# Start background thread
+threading.Thread(target=init_shap, daemon=True).start()
 
 @app.route('/')
 def index():
@@ -39,6 +57,7 @@ def predict():
         housing_median_age = float(data.get('housing_median_age'))
         latitude = float(data.get('latitude'))
         longitude = float(data.get('longitude'))
+
         
 
         features = [{"ocean_proximity":ocean_proximity, "median_income": median_income, "households": households, "population": population, "total_bedrooms": total_bedrooms, "total_rooms": total_rooms, "housing_median_age": housing_median_age, "latitude": latitude, "longitude": longitude}]
@@ -51,48 +70,48 @@ def predict():
 
         try:
             plot_url = None
-        
-            print("Generating SHAP values...")
-            shap_values = explainer.shap_values(prepared_df,check_additivity=False)
+            
+            if explainer is not None:
+                # Use global explainer with optimization
+                shap_values = explainer.shap_values(prepared_df, check_additivity=False)
 
-            print(f"SHAP values: {shap_values}")
+                if isinstance(shap_values, list):
+                    shap_vals = shap_values[0]
+                else:
+                    shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
+                
+                fig , ax = plt.subplots(figsize=(10,6))
 
-            if isinstance(shap_values, list):
-                shap_vals = shap_values[0]
+                feature_names_list = list (prepared_df.columns)
+                feature_values = shap_vals
+
+                indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
+                sorted_feature_names = [feature_names_list[i] for i in indices]
+                sorted_feature_values = [feature_values[i] for i in indices]
+
+                colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
+                y_pos = range(len(sorted_feature_names))
+
+                ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
+                ax.set_yticks(y_pos)
+                ax.set_yticklabels(sorted_feature_names)
+                ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
+                ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
+                plt.tight_layout()
+                ax.axvline(0, color='black', linewidth=0.8)
+                ax.grid(axis='x',alpha=0.3)
+
+                for i, v in enumerate(sorted_feature_values):
+                    ax.text(v + (0.02 if v > 0 else -0.02), i, f"{v:.3f}", color='black', va='center', fontweight='bold', fontsize=9)
+                
+                img = io.BytesIO()
+                plt.savefig(img, format='png', dpi =100 , bbox_inches='tight')
+                img.seek(0)
+                plot_url = base64.b64encode(img.getvalue()).decode('utf-8')
+                plt.close(fig)
+                plot_url = f'data:image/png;base64,{plot_url}'
             else:
-                shap_vals = shap_values[0] if shap_values.ndim == 2 else shap_values
-
-            
-            fig , ax = plt.subplots(figsize=(10,6))
-
-            feature_names_list = list (prepared_df.columns)
-            feature_values = shap_vals
-
-            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:5]
-            sorted_feature_names = [feature_names_list[i] for i in indices]
-            sorted_feature_values = [feature_values[i] for i in indices]
-
-            colors = ['#ef4444' if val < 0 else '#22c55e' for val in sorted_feature_values]
-            y_pos = range(len(sorted_feature_names))
-
-            ax.barh(y_pos, sorted_feature_values, color=colors , alpha=0.7)
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(sorted_feature_names)
-            ax.set_xlabel('SHAP Values (Impact on Prediction)',fontsize=12, fontweight='bold')
-            ax.set_title('Feature Importance for This Prediction', fontsize=14, fontweight='bold')
-            plt.tight_layout()
-            ax.axvline(0, color='black', linewidth=0.8)
-            ax.grid(axis='x',alpha=0.3)
-
-            for i, v in enumerate(sorted_feature_values):
-                ax.text(v + (0.02 if v > 0 else -0.02), i, f"{v:.3f}", color='black', va='center', fontweight='bold', fontsize=9)
-            
-            img = io.BytesIO()
-            plt.savefig(img, format='png', dpi =100 , bbox_inches='tight')
-            img.seek(0)
-            plot_url = base64.b64encode(img.getvalue()).decode('utf-8')
-            plt.close(fig)
-            plot_url = f'data:image/png;base64,{plot_url}'
+                 print("SHAP explainer not ready yet. Skipping plot.", flush=True)
         
         except Exception as e:
             print(f"SHAP plot generation failed: {e}")
