@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import joblib
 import pandas as pd
+import numpy as np
 import shap
 import matplotlib.pyplot as plt
 import io
@@ -51,9 +52,10 @@ def predict():
         try:
             plot_url = None
         
-            
+            print("Generating SHAP values...")
             shap_values = explainer.shap_values(prepared_df,check_additivity=False)
 
+            print(f"SHAP values: {shap_values}")
 
             if isinstance(shap_values, list):
                 shap_vals = shap_values[0]
@@ -66,7 +68,7 @@ def predict():
             feature_names_list = list (prepared_df.columns)
             feature_values = shap_vals
 
-            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
+            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:5]
             sorted_feature_names = [feature_names_list[i] for i in indices]
             sorted_feature_values = [feature_values[i] for i in indices]
 
