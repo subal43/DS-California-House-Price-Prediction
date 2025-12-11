@@ -68,7 +68,7 @@ def predict():
             feature_names_list = list (prepared_df.columns)
             feature_values = shap_vals
 
-            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:5]
+            indices = sorted(range(len(feature_values)), key=lambda i: abs(feature_values[i]), reverse=True)[:10]
             sorted_feature_names = [feature_names_list[i] for i in indices]
             sorted_feature_values = [feature_values[i] for i in indices]
 
